@@ -23,3 +23,15 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+// File: cypress/support/commands.js
+
+Cypress.Commands.add('loginAdmin', (username, password) => {
+    cy.visit('https://opensource-demo.orangehrmlive.com/');
+    cy.get('input[name="username"]').type(username);
+    cy.get('input[name="password"]').type(password);
+    cy.get('button[type="submit"]').click();
+    
+    // Xác minh đã đăng nhập thành công
+    cy.url().should('include', '/web/index.php/dashboard/index'); 
+});
