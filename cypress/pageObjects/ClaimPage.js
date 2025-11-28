@@ -1,30 +1,26 @@
-// File: cypress/pageObjects/ClaimPage.js
+// File: cypress/pageObjects/ClaimPage.js - CODE ĐÃ FIX LỖI VÀ TỐI ƯU
 
 class ClaimPage {
     // Menu
     getClaimMenu() {
-        // Selector cho menu Claim trên thanh sidebar trái
-        return cy.get('a[href*="claim"]'); 
+        // Selector ổn định cho menu Claim trên thanh sidebar trái
+        return cy.get('.oxd-main-menu-item').contains('Claim'); 
     }
     
-    // Sub-menu (View Claims)
-    getViewClaimsSubMenu() {
-        // Selector cho tab View Claims dưới menu Claim
-        return cy.get('.oxd-topbar-body-nav-tab-item').contains('View Claims');
+    // **PHƯƠNG THỨC MỚI ĐÃ THÊM ĐỂ KHẮC PHỤC LỖI:**
+    getAssignClaimSubMenu() {
+        // Selector cho nút "Assign Claim" trên menu phụ (Top Bar)
+        return cy.get('.oxd-topbar-body-nav-tab-item').contains('Assign Claim');
     }
 
-    // Assign Button
-    getAssignButtonOnList() {
-        // Giả định click vào nút Assign đầu tiên trong danh sách (để truy cập form)
-        // Cần chỉnh sửa nếu bạn có cách tìm claim cụ thể hơn
-        return cy.get('.oxd-table-cell-actions button:contains("Assign")').first(); 
-    }
+    // Assign Button (Không còn cần thiết vì chúng ta dùng getAssignClaimSubMenu)
+    // getAssignButtonOnList() {}
     
     // Form Assign Claim
+    // Đã sửa chỉ mục (index) thành eq(0) vì Employee Name là trường Autocomplete đầu tiên trong form Assign Claim.
     getEmployeeNameInput() {
-        // Trường nhập tên nhân viên (selector chung cho autocomplete input)
-        // Nó thường là input thứ 2 trong form sau trường Type
-        return cy.get('.oxd-autocomplete-text-input input').eq(1);
+        // Trường nhập tên nhân viên (Autocomplete input đầu tiên)
+        return cy.get('.oxd-autocomplete-text-input input').eq(0); 
     }
 
     getSaveButton() {
@@ -32,19 +28,18 @@ class ClaimPage {
         return cy.get('button[type="submit"]');
     }
     
+    // Các selector báo lỗi
     getRequiredError() {
-        // Thông báo lỗi "Required"
         return cy.contains('.oxd-input-field-error-message', 'Required');
     }
     
     getSuccessToast() {
-        // Thông báo thành công chung
         return cy.get('.oxd-toast-content--success');
     }
     
     getInvalidDataError() {
-        // Thông báo lỗi dữ liệu không hợp lệ (ví dụ: Invalid Employee Name)
-        return cy.get('.oxd-input-field-error-message');
+        // Tìm thông báo lỗi gần trường input bị lỗi (dùng selector tương đối)
+        return cy.get('.oxd-autocomplete-text-input').parent().parent().find('.oxd-input-field-error-message');
     }
 }
 
