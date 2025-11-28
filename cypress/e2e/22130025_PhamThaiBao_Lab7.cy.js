@@ -13,7 +13,7 @@ describe('Lab7 - The Internet App - Comprehensive Test Suite (Slowed Down)', () 
         beforeEach(() => {
             cy.visit(dataTableUrl);
             cy.log('Đã truy cập trang Data Tables');
-            cy.wait(5000); // Tạm dừng 0.5 giây sau khi tải trang
+            cy.wait(5000); 
         });
 
         // C - CREATE Simulation: Kiểm tra sự tồn tại của bản ghi Jason Doe
@@ -27,7 +27,7 @@ describe('Lab7 - The Internet App - Comprehensive Test Suite (Slowed Down)', () 
                   .and('contain', 'Jason')     
                   .and('contain', '$100.00');  
             });
-            cy.wait(5000); // Tạm dừng 0.5 giây sau khi xác minh
+            cy.wait(5000); 
             cy.log('Bản ghi Jason Doe đã được xác minh thành công.');
         });
 
@@ -40,7 +40,7 @@ describe('Lab7 - The Internet App - Comprehensive Test Suite (Slowed Down)', () 
                   .should('be.visible')
                   .within(() => {
                       cy.get('td:nth-child(2)').should('contain', 'Frank');   
-                      cy.wait(5000); // Tạm dừng 0.5 giây
+                      cy.wait(5000); 
                       cy.get('td:nth-child(4)').should('contain', '$51.00'); 
                   });
             });
@@ -145,4 +145,5 @@ describe('Lab7 - The Internet App - Comprehensive Test Suite (Slowed Down)', () 
         });
 
     });
+
 });
