@@ -1,9 +1,5 @@
-// 21130033_PhamHaiDuong_Lab7.cy.js
 describe('Cellphones E2E Test Suite - 21130033 Pham Hai Duong', () => {
 
-  // --------------------------
-  //  🔐 AUTHENTICATION TESTS
-  // --------------------------
   describe('Authentication Tests', () => {
 
     it('CP-LOGIN-01: Successful login with valid credentials', () => {
@@ -118,9 +114,7 @@ describe('Cellphones E2E Test Suite - 21130033 Pham Hai Duong', () => {
 
   });
 
-  // --------------------------
-  //  🔍 SEARCH TESTS
-  // --------------------------
+
   describe('Search Tests', () => {
 
     it('CP-SEARCH-01: Successful search for existing product (iPhone 15)', () => {
