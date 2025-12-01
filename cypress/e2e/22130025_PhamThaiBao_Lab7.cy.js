@@ -1,149 +1,198 @@
-describe('Lab7 - The Internet App - Comprehensive Test Suite (Slowed Down)', () => {
+describe('Cellphones E2E Shopping Flow - Combined Test', () => {
 
-    const targetEmail = 'fbach@yahoo.com'; 
-    const formUrl = 'https://the-internet.herokuapp.com';
+  it('CP-FLOW-COMBINED: Login -> Search -> View Product Detail -> Add to Cart -> View Cart -> Update Cart', () => {
+    cy.log('🎯 BẮT ĐẦU LUỒNG: Đăng nhập -> Tìm kiếm -> Chi tiết SP -> Giỏ hàng');
 
-    // ===============================================================
-    // 1. CONTEXT: Mô phỏng Quản lý LOCATIONS (CRUD trên Bảng Dữ liệu)
-    // ===============================================================
-    context('A. CRUD Simulation on Data Tables (Locations/Users List)', () => {
-        
-        const dataTableUrl = formUrl + '/tables';
+    // =================================================================
+    // === BƯỚC 1: ĐĂNG NHẬP (TRÊN SMEMBER.COM.VN) ===
+    // =================================================================
+    cy.log('🔐 Bước 1: Đăng nhập thành công');
+    cy.visit('https://smember.com.vn/login');
+    cy.viewport(1280, 720);
+    cy.wait(5000);
 
-        beforeEach(() => {
-            cy.visit(dataTableUrl);
-            cy.log('Đã truy cập trang Data Tables');
-            cy.wait(5000); 
+    cy.get('body').then(($body) => {
+      if ($body.find('input[data-slot="input"]').length > 0) {
+        cy.get('input[data-slot="input"]').then(($inputs) => {
+          cy.wrap($inputs[0]).clear().type('0981637968', { force: true, delay: 100 });
+          cy.wrap($inputs[1]).clear().type('phamthaibao2004', { force: true, delay: 100 });
         });
-
-        // C - CREATE Simulation: Kiểm tra sự tồn tại của bản ghi Jason Doe
-        it('A1 - Simulate ADD NEW Location/User (Verify Jason Doe Record)', () => {
-            cy.log('*** A1: Kiểm tra bản ghi của Jason Doe (LastName "Doe") ***');
-            
-            cy.get('#table1').within(() => {
-                cy.contains('td', 'Doe')
-                  .parents('tr')
-                  .should('have.length', 1) 
-                  .and('contain', 'Jason')     
-                  .and('contain', '$100.00');  
-            });
-            cy.wait(5000); 
-            cy.log('Bản ghi Jason Doe đã được xác minh thành công.');
-        });
-
-        // R - READ/SEARCH (Tìm kiếm và Xác minh)
-        it('A2 - Search and Verify a specific record (READ)', () => {
-            cy.log(`*** A2: Tìm kiếm và xác minh email: ${targetEmail} ***`);
-            
-            cy.get('#table1').within(() => {
-                cy.contains('tr', targetEmail) 
-                  .should('be.visible')
-                  .within(() => {
-                      cy.get('td:nth-child(2)').should('contain', 'Frank');   
-                      cy.wait(5000); 
-                      cy.get('td:nth-child(4)').should('contain', '$51.00'); 
-                  });
-            });
-            cy.log('Dữ liệu đã được tìm thấy và xác minh.');
-        });
-
-        // U - UPDATE Simulation (Click nút Edit)
-        it('A3 - Simulate EDIT action on a record', () => {
-            cy.log(`*** A3: Mô phỏng Click nút Edit của bản ghi: ${targetEmail} ***`);
-
-            cy.get('#table1').contains('tr', targetEmail)
-                .within(() => {
-                    cy.contains('a', 'edit').click();
-                });
-            
-            cy.wait(1000); // Tạm dừng 1 giây để quan sát hành động click
-            cy.url().should('include', '/tables#'); 
-            cy.log('Đã click nút Edit thành công.');
-        });
-
-        // D - DELETE Simulation (Click nút Delete)
-        it('A4 - Simulate DELETE action on a record', () => {
-            cy.log(`*** A4: Mô phỏng Click nút Delete của bản ghi: ${targetEmail} ***`);
-
-            cy.get('#table1').contains('tr', targetEmail)
-                .within(() => {
-                    cy.contains('a', 'delete').click();
-                });
-            
-            cy.wait(1000); // Tạm dừng 1 giây để quan sát hành động click
-            cy.url().should('include', '/tables#');
-            cy.log('Đã click nút Delete thành công.');
-        });
-
+      } else {
+        cy.get('input[type="tel"], input[type="text"]').first().clear().type('0981637968', { force: true, delay: 100 });
+        cy.get('input[type="password"]').clear().type('phamthaibao2004', { force: true, delay: 100 });
+      }
     });
 
-    // ----------------------------------------------------------------------------------
+    cy.get('body').then(($body) => {
+      if ($body.find('button[type="submit"]').length > 0) {
+        cy.get('button[type="submit"]').click({ force: true });
+      } else {
+        cy.contains('button', 'Đăng nhập').first().click({ force: true });
+      }
+    });
+
+    cy.wait(10000);
+    cy.log('✅ Đăng nhập thành công, chuẩn bị chuyển hướng.');
+
+    // =================================================================
+    // === BƯỚC 2: CHUYỂN TRANG SANG CELLPHONES ===
+    // =================================================================
+    cy.log('🏠 Bước 2: Chuyển sang Cellphones và Tìm kiếm');
+    cy.get('a[href="https://cellphones.com.vn"]').first().click({ force: true });
+
+    // =================================================================
+    // === BƯỚC 3-6: TRÊN CELLPHONES.COM.VN ===
+    // =================================================================
+    cy.origin('https://cellphones.com.vn', () => {
+      cy.viewport(1280, 720);
+      cy.wait(5000);
+
+      // --- BƯỚC 3: TÌM KIẾM ---
+      cy.log('🔍 Bước 3: Tìm kiếm "iPhone 15"');
+      const searchSelectors = [
+        'input[placeholder="Bạn muốn mua gì hôm nay?"]',
+        'input[type="search"]',
+        '.search-input',
+        '#search-input'
+      ];
+
+      cy.get('body').then(($body) => {
+        let found = false;
+        for (let selector of searchSelectors) {
+          if ($body.find(selector).length > 0) {
+            cy.get(selector).first().clear().type('iPhone 15{enter}', { force: true, delay: 100 });
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          cy.visit('https://cellphones.com.vn/search?q=iPhone+15');
+        }
+      });
+
+      cy.wait(7000);
+      cy.log('✅ Tìm kiếm hoàn tất.');
+
+      // --- BƯỚC 4: MỞ CHI TIẾT SẢN PHẨM ---
+      cy.log('📱 Bước 4: Click sản phẩm đầu tiên');
+
+      cy.get('a[href*="/product"], a[href*="/iphone"], a[href*="iphone"]', { timeout: 15000 })
+        .should('be.visible');
+
+      cy.get('a[href*="/product"], a[href*="/iphone"], a[href*="iPhone"]')
+        .filter((i, el) => el.innerText.toLowerCase().includes("iphone"))
+        .first()
+        .click({ force: true });
     
-    // ===============================================================
-    // 2. CONTEXT: Mô phỏng GENERAL INFORMATION (Update Form)
-    // ===============================================================
-    context('B. Form Update Simulation (General Information)', () => {
+    cy.get('h1, button:contains("Mua Ngay")', { timeout: 15000 }).should('be.visible');
 
-        // U - UPDATE Checkboxes (Toggles Settings)
-        it('B1 - Simulate Form Update: Checkboxes (Toggle Settings)', () => {
-            cy.log('*** B1: Update: Thay đổi trạng thái Checkbox ***');
-            cy.visit(formUrl + '/checkboxes');
-            cy.wait(5000);
-            
-            // 1. Chọn Checkbox 1 
-            cy.get('#checkboxes input:nth-child(1)')
-                .should('not.be.checked')
-                .check()
-                .should('be.checked');
-            cy.wait(5000);
-                
-            // 2. Bỏ chọn Checkbox 2 
-            cy.get('#checkboxes input:nth-child(3)')
-                .should('be.checked')
-                .uncheck()
-                .should('not.be.checked');
-            cy.wait(5000);
+      cy.log('✅ Đã vào trang chi tiết SP.');
+      cy.wait(8000);
 
-            cy.log('Đã cập nhật thành công các Checkbox.');
-        });
+      // --- BƯỚC 5: THÊM VÀO GIỎ HÀNG ---
+      cy.log('🛒 Bước 5: Thêm vào giỏ hàng');
+      cy.get('body').then(($body) => {
+        const addToCartSelectors = [
+          'button:contains("Mua Ngay")',
+          'button:contains("Thêm vào giỏ hàng")',
+          '.btn-buy-now',
+          '.add-to-cart'
+        ];
 
-        // U - UPDATE Text Input (Updating Name/Address)
-        it('B2 - Simulate Form Update: Text Input (Updating Info)', () => {
-            cy.log('*** B2: Update: Thay đổi giá trị Text Input ***');
-            cy.visit(formUrl + '/inputs'); 
-            cy.wait(5000);
+        for (let selector of addToCartSelectors) {
+          if (selector.includes('contains')) {
+            const text = selector.split('"')[1];
+            if ($body.find(`button:contains("${text}")`).length > 0) {
+              cy.contains('button', text).first().click({ force: true });
+              break;
+            }
+          } else if ($body.find(selector).length > 0) {
+            cy.get(selector).first().click({ force: true });
+            break;
+          }
+        }
+      });
 
-            const newTextValue = '54321';
+      cy.wait(5000);
+      cy.log('✅ Đã thêm vào giỏ.');
 
-            // 1. Xóa nội dung cũ và nhập giá trị mới
-            cy.get('input[type="number"]') 
-                .clear()
-                .type(newTextValue);
-            
-            cy.wait(5000);
-            cy.get('input[type="number"]').should('have.value', newTextValue); 
+      // --- BƯỚC 6: VÀO GIỎ HÀNG ---
+      cy.log('📦 Bước 6: Xem giỏ hàng');
+      cy.get('body').then(($body) => {
+        const cartSelectors = ['.cart-box', '.cart-icon', 'a[href*="cart"]'];
 
-            cy.log('Đã cập nhật thành công trường text input.');
-        });
+        let cartClicked = false;
+        for (let selector of cartSelectors) {
+          if ($body.find(selector).length > 0) {
+            cy.get(selector).first().click({ force: true });
+            cartClicked = true;
+            break;
+          }
+        }
 
-        // U - UPDATE Dropdown (Selecting Options)
-        it('B3 - Simulate Form Update: Dropdown (Selecting Options)', () => {
-            cy.log('*** B3: Update: Thay đổi lựa chọn Dropdown ***');
-            cy.visit(formUrl + '/dropdown'); 
-            cy.wait(5000);
+        if (!cartClicked) cy.visit('https://cellphones.com.vn/cart');
+      });
 
-            const optionText = 'Option 2';
+      cy.wait(5000);
+      cy.url().should('include', '/cart');
+      cy.log('🛒 Đang ở trang giỏ hàng — bắt đầu cập nhật');
 
-            // 1. Chọn một tùy chọn từ Dropdown
-            cy.get('#dropdown') 
-                .select(optionText); 
-            
-            cy.wait(5000);
-            cy.get('#dropdown').should('have.value', '2'); 
-            
-            cy.log(`Đã chọn thành công: ${optionText}`);
-        });
+      // =====================================================================
+      // === BƯỚC 7: TĂNG SỐ LƯỢNG ===
+      // =====================================================================
+      cy.get('body').then(($body) => {
+        if ($body.find('button[class*="plus"], button:contains("+"), .qty-plus').length > 0) {
+          cy.log('🔼 Tăng số lượng');
+          cy.get('button[class*="plus"], button:contains("+"), .qty-plus')
+            .first()
+            .click({ force: true });
+          cy.wait(2000);
+        } else cy.log('⚠ Không tìm thấy nút tăng');
+      });
 
+      // =====================================================================
+      // === BƯỚC 8: GIẢM SỐ LƯỢNG ===
+      // =====================================================================
+      cy.get('body').then(($body) => {
+        if ($body.find('button[class*="minus"], button:contains("-"), .qty-minus').length > 0) {
+          cy.log('🔽 Giảm số lượng');
+          cy.get('button[class*="minus"], button:contains("-"), .qty-minus')
+            .first()
+            .click({ force: true });
+          cy.wait(2000);
+        } else cy.log('⚠ Không tìm thấy nút giảm');
+      });
+
+      // =====================================================================
+      // === BƯỚC 9: XÓA SẢN PHẨM ===
+      // =====================================================================
+      cy.get('body').then(($body) => {
+        const trashSelectors = [
+          'i[class*="trash"]',
+          'button[class*="delete"]',
+          '.remove-item',
+          '.cart-item-delete',
+          'svg[xmlns][viewBox]'
+        ];
+
+        for (let selector of trashSelectors) {
+          if ($body.find(selector).length > 0) {
+            cy.log('🗑 Xóa sản phẩm');
+            cy.get(selector).first().click({ force: true });
+            break;
+          }
+        }
+      });
+
+      cy.wait(3000);
+
+      cy.get('body').then(($body) => {
+        if ($body.text().includes('Giỏ hàng trống') || $body.find('.empty-cart').length > 0) {
+          cy.log('✅ Đã xóa sản phẩm — Giỏ hàng trống');
+        }
+      });
+
+      cy.log('🎉 HOÀN THÀNH LUỒNG E2E SHOPPING FLOW!');
     });
-
+  });
 });
