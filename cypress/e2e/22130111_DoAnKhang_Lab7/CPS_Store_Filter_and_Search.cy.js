@@ -76,21 +76,13 @@ describe('Suite: CPS_Store_Filter_and_Search', () => {
     // ACTION: Change Province to Ha Noi
     cy.get('#boxSearchProvince').select('Hà Nội');
 
-    // WAIT LOGIC:
-    // When province changes, the District dropdown refreshes via API. 
-    // We must wait for it to become enabled again or for the API to finish.
-    // A simple guard is checking that it is NOT disabled.
+    // 1. Chờ cho ô District không bị disable (để đảm bảo API đã phản hồi)
     cy.get('#boxSearchDistrict').should('not.be.disabled');
 
-    // VALIDATION:
-    // We check the "Selected Option" text instead of 'value' to avoid the "null" error
-    // and to handle the case where value is "0" or "" (empty string).
+    // 2. Dùng .should() để Cypress tự động đợi text chuyển từ "Quận 1" -> "Chọn quận/huyện"
+    // Lưu ý: Dùng 'contain' để tránh lỗi do khoảng trắng thừa
     cy.get('#boxSearchDistrict option:selected')
-      .invoke('text')
-      .then((text) => {
-          // Convert everything to lowercase first, then check
-          expect(text.trim().toLowerCase()).to.include('chọn quận/huyện'); 
-      });
+      .should('contain.text', 'Chọn quận/huyện'); 
   });
 
   // --- TC 05: Unsigned Keyword ---
