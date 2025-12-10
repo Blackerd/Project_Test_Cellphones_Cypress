@@ -1,139 +1,190 @@
-import ClaimPage from '../pageObjects/ClaimPage'; 
+describe('Cellphones E2E Test Suite', () => {
 
-// Khai báo các hằng số cần thiết
-const VALID_EMPLOYEE_NAME = 'Fiona White'; 
-const INVALID_EMPLOYEE_NAME = 'Non Existent User ZZZ'; 
-const VALID_CLAIM_TYPE = 'Travel Allowance'; 
-const ADMIN_PASSWORD = 'admin123';
+    // --- DỮ LIỆU CHUNG (Tùy chỉnh) ---
+    // SỬ DỤNG TÀI KHOẢN ĐÃ CÓ VÀ ĐÃ ĐƯỢC KIỂM TRA HỢP LỆ TRÊN SỐ ĐIỆN THOẠI VÀ MẬT KHẨU
+    const USER = '0396193735'; 
+    const PASS = '123456789@Qd';
+    const NEW_NAME = 'Nguyễn Tester Mới'; 
+    // ------------------------------------
 
-// Khai báo POM cho Maintenance (Giả định nằm trong cùng file hoặc đã được import)
-// Nếu bạn chưa tạo MaintenancePage, hãy đặt selector này vào ClaimPage.js hoặc tạo file mới.
-const getMaintenanceMenu = () => cy.get('.oxd-main-menu-item').contains('Maintenance');
+    // =======================================================
+    // 1. CHỨC NĂNG: AUTHENTICATION TESTS (Đăng nhập)
+    // =======================================================
+    describe('Authentication Tests', () => {
+        
+        // TC-01: Đăng nhập thành công với thông tin hợp lệ (Giữ nguyên code của bạn)
+        it('CP-LOGIN-01: Successful login with valid credentials', () => {
+            cy.log('🔐 TC-01: Đăng nhập thành công');
+            cy.visit('https://smember.com.vn/login');
+            cy.viewport(1280, 720);
+            cy.wait(5000);
 
-describe('OrangeHRM E2E Test Suite (Final)', () => {
+            // Nhập thông tin đăng nhập
+            cy.get('body').then(($body) => {
+                if ($body.find('input[data-slot="input"]').length > 0) {
+                    cy.get('input[data-slot="input"]').then(($inputs) => {
+                        cy.wrap($inputs[0]).clear().type(USER, { force: true, delay: 100 });
+                        cy.wrap($inputs[1]).clear().type(PASS, { force: true, delay: 100 });
+                    });
+                } else {
+                    cy.get('input[type="tel"], input[type="text"]').first().clear().type(USER, { force: true, delay: 100 });
+                    cy.get('input[type="password"]').clear().type(PASS, { force: true, delay: 100 });
+                }
+            });
+            
+            // Submit form đăng nhập
+            cy.get('body').then(($body) => {
+                if ($body.find('button[type="submit"]').length > 0) {
+                    cy.get('button[type="submit"]').click({ force: true });
+                } else {
+                    cy.contains('button', 'Đăng nhập').first().click({ force: true });
+                }
+            });
+            
+            cy.wait(10000);
+
+            // Verify đăng nhập thành công
+            cy.get('body').should(($body) => {
+                const bodyText = $body.text();
+                expect(bodyText).to.match(/Tài khoản|Xin chào|Bạn đang ở kênh thành viên|Đăng nhập thành công/i);
+            });
+            cy.log('✅ TC-01 PASS: Đăng nhập thành công');
+        });
+        
+        // ... (Bạn có thể giữ lại hoặc comment TC-02: Failed login with wrong password) ...
+
+    });
+
+    // --- HÀM HỖ TRỢ: Login và Chuyển Domain (Sử dụng lại logic từ TC-NAV-01) ---
+    const loginAndNavigateToCellphones = () => {
+        cy.visit('https://smember.com.vn/login');
+        cy.viewport(1280, 720);
+        cy.wait(5000);
+
+        // Đăng nhập
+        cy.get('input[type="tel"], input[type="text"]').first().clear().type(USER, { force: true, delay: 100 });
+        cy.get('input[type="password"]').clear().type(PASS, { force: true, delay: 100 });
+        cy.contains('button', 'Đăng nhập').first().click({ force: true });
+        
+        cy.wait(10000); // Chờ chuyển trang Smember
+
+        // Chuyển sang Cellphones
+        cy.get('a[href="https://cellphones.com.vn"]').first().click({ force: true });
+        
+        // Cypress cần cy.origin() để xử lý chuyển domain
+        cy.origin('https://cellphones.com.vn', () => {
+            cy.viewport(1280, 720);
+            cy.wait(5000);
+            cy.url().should('include', 'cellphones.com.vn');
+        });
+        cy.log('Đã đăng nhập và chuyển domain thành công.');
+    };
     
-    // =======================================================================
-    // SUITE 1: CHỨC NĂNG CLAIM (ASSIGN CLAIM) - LOGIC ORANGEHRM CHÍNH XÁC
-    // =======================================================================
-    describe('Lab 7 - Chức năng Claim Management (Assign Claim) - MSSV: 21130329', () => {
-        const claimPage = new ClaimPage();
-
-        // Bước Precondition: Đăng nhập và điều hướng đến màn hình Assign Claim
+    // =======================================================
+    // 2. CHỨC NĂNG: HOMEPAGE & PROMOTION TESTS (Trang chủ & Khuyến mãi)
+    // =======================================================
+    describe('Homepage & Promotion Tests', () => {
+        
+        // Chạy trước mỗi test trong khối này
         beforeEach(() => {
-            cy.loginAdmin('Admin', ADMIN_PASSWORD); 
-            cy.get('.oxd-layout-navigation').should('be.visible');
+            cy.visit('https://cellphones.com.vn/');
+            cy.viewport(1280, 720);
+            cy.wait(3000);
+        });
 
-            claimPage.getClaimMenu().click();
-            claimPage.getAssignClaimSubMenu().click(); 
+        it('TC_HP_01: Verify successful homepage loading and display.', () => {
+            cy.log('🏠 TC_HP_01: Kiểm tra trang chủ tải thành công.');
             
-            cy.contains('.oxd-text--h6', 'Assign Claim').should('be.visible');
-
-            // Chọn Claim Type bắt buộc
-            cy.get('.oxd-select-text-input').first().click();
-            cy.contains('.oxd-select-dropdown', VALID_CLAIM_TYPE).click();
-            cy.wait(500); 
+            cy.url().should('eq', 'https://cellphones.com.vn/');
+            cy.get('header').should('be.visible'); 
+            cy.get('footer').should('be.visible');
+            
+            // Xác minh có ít nhất 1 banner chính hiển thị
+            cy.get('.main-slider .swiper-slide').should('have.length.at.least', 1);
+            cy.log('✅ TC_HP_01 PASS: Trang chủ tải thành công.');
         });
         
-        // --- TC_CLAIM_ASIGN_001: Happy Path - Gán thành công ---
-        it('TC_CLAIM_ASIGN_001: Check successful assignment to a valid employee.', () => {
-            claimPage.getEmployeeNameInput().type(VALID_EMPLOYEE_NAME);
-            cy.wait(500); 
-            claimPage.getEmployeeNameInput().type('{downArrow}{enter}'); 
+        it('TC_HP_02: Check Main Banner functionality and redirection.', () => {
+            cy.log('📢 TC_HP_02: Kiểm tra liên kết Banner.');
+            
+            // Tìm và click vào banner đầu tiên
+            // Dùng selector linh hoạt cho banner và link
+            cy.get('.main-slider a').first().then(($link) => {
+                const href = $link.attr('href');
+                cy.wrap($link).click({ force: true });
+                
+                // Xác minh chuyển hướng
+                cy.url().should('not.include', 'cellphones.com.vn/$');
+                cy.url().should('include', href.split('.vn/')[1].split('.html')[0]);
+            });
 
-            claimPage.getSaveButton().click();
-
-            claimPage.getSuccessToast().should('be.visible').and('contain', 'Successfully Assigned');
-            cy.url().should('include', '/viewClaims');
-        });
-
-        // --- TC_CLAIM_ASIGN_002: Invalid Data - Tên nhân viên không tồn tại ---
-        it('TC_CLAIM_ASIGN_002: Check error message when assigning to a non-existent employee.', () => {
-            claimPage.getEmployeeNameInput().type(INVALID_EMPLOYEE_NAME);
-            claimPage.getSaveButton().click();
-
-            claimPage.getInvalidDataError().should('be.visible').and('contain', 'Invalid');
-            cy.contains('Assign Claim').should('be.visible'); 
-        });
-        
-        // --- TC_CLAIM_ASIGN_003: Mandatory Field Check - Để trống tên nhân viên ---
-        it('TC_CLAIM_ASIGN_003: Check required field validation for the Employee Name field.', () => {
-            claimPage.getEmployeeNameInput().clear();
-            claimPage.getSaveButton().click();
-
-            claimPage.getRequiredError().should('be.visible').and('contain', 'Required');
-            cy.contains('Assign Claim').should('be.visible');
+            cy.log('✅ TC_HP_02 PASS: Chuyển hướng banner thành công.');
         });
     });
 
-    // =======================================================================
-    // SUITE 2: CHỨC NĂNG MAINTENANCE - LOGIC ORANGEHRM (VỚI CÁC BƯỚC CƠ BẢN)
-    // =======================================================================
-    describe('Lab 7 - Chức năng Maintenance (Purge/Access) - MSSV: 21130329', () => {
+    // =======================================================
+    // 3. CHỨC NĂNG: PROFILE MANAGEMENT TESTS (Quản lý Tài khoản)
+    // =======================================================
+    // NOTE: Các test này YÊU CẦU loginAndNavigateToCellphones() thành công trước.
+    describe('Profile Management Tests', () => {
         
-        // --- TC_MAINT_ACCESS_001: Truy cập màn hình Maintenance thành công ---
-        it('TC_MAINT_ACCESS_001: Check successful access to Maintenance screen.', () => {
-            cy.log('🔐 TC-MAINT-ACCESS-001: Kiểm tra Truy cập màn hình Maintenance');
-
-            // 1. Đăng nhập Admin
-            cy.loginAdmin('Admin', ADMIN_PASSWORD);
-            
-            // 2. Click vào Maintenance (Yêu cầu nhập lại mật khẩu)
-            getMaintenanceMenu().click();
-            
-            // 3. Nhập mật khẩu xác nhận
-            // Sử dụng selector cho trường Password trên màn hình xác nhận
-            cy.get('input[name="password"]').type(ADMIN_PASSWORD); 
-            cy.get('button[type="submit"]').click();
-            
-            // 4. Verify đã vào màn hình Maintenance
-            cy.url().should('include', '/maintenance/purgeRecords');
-            cy.contains('.oxd-topbar-header-title', 'Purge Records').should('be.visible');
-            cy.log('✅ TC-MAINT-ACCESS-001 PASS: Truy cập thành công.');
-        });
-        
-        // --- TC_MAINT_PURGE_001: Xóa bản ghi thành công (Minimal Logic) ---
-        it('TC_MAINT_PURGE_001: Check successful Purge of records.', () => {
-            cy.log('🗑️ TC-MAINT-PURGE-001: Kiểm tra Xóa bản ghi (Purge) thành công.');
-            
-            // 1. Đăng nhập và truy cập Maintenance (Giống TC_MAINT_ACCESS_001)
-            cy.loginAdmin('Admin', ADMIN_PASSWORD);
-            getMaintenanceMenu().click();
-            cy.get('input[name="password"]').type(ADMIN_PASSWORD); 
-            cy.get('button[type="submit"]').click();
-            
-            // 2. Điều hướng đến Purge Records (Purge Employee Records)
-            cy.contains('.oxd-topbar-body-nav-tab-item', 'Purge Records').click();
-            cy.contains('.oxd-select-text-input', 'Employee Records').click(); // Chọn loại bản ghi
-            
-            // 3. Xử lý logic Purge (Giả định các bước thành công)
-            cy.log('ℹ️ Thực hiện các bước Purge (Giả định dữ liệu hợp lệ và click Yes, Purge)');
-            // **LƯU Ý:** Để TC này PASS, bạn cần xác định và thực hiện các bước Purge thực tế.
-            // Vì lý do an toàn, chúng ta sẽ chỉ kiểm tra bước đầu tiên.
-            
-            // **Placeholder Verification:** Giả định TC thành công nếu nút Purge hiển thị
-            cy.get('button:contains("Purge")').should('be.visible');
-            cy.log('✅ TC-MAINT-PURGE-001 PASS: Xử lý xóa thành công (Placeholder).');
+        // Điều kiện tiên quyết: Đăng nhập và chuyển sang Cellphones trước khi mỗi test chạy
+        beforeEach(() => {
+            loginAndNavigateToCellphones();
         });
 
-        // --- TC_MAINT_PURGE_002: Lỗi thiếu trường bắt buộc ---
-        it('TC_MAINT_PURGE_002: Check Purge validation with missing mandatory fields.', () => {
-            cy.log('❌ TC-MAINT-PURGE-002: Kiểm tra lỗi thiếu trường bắt buộc.');
+        it('TC_PM_02: Update Display Name (Họ và Tên) successfully.', () => {
+            cy.log('👤 TC_PM_02: Cập nhật Tên hiển thị.');
             
-            // 1. Đăng nhập và truy cập Purge Records
-            cy.loginAdmin('Admin', ADMIN_PASSWORD);
-            getMaintenanceMenu().click();
-            cy.get('input[name="password"]').type(ADMIN_PASSWORD); 
-            cy.get('button[type="submit"]').click();
+            // 1. Điều hướng đến trang Thông tin cá nhân
+            // Cần tìm selector chính xác để vào trang profile trên Cellphones
+            cy.get('.user-info-area a[href*="customer/account/"]').click({ force: true }); // Selector ví dụ
+            cy.contains('Thông tin tài khoản').click({ force: true }); // Selector ví dụ
             
-            // 2. Điều hướng đến Purge Records (Purge Employee Records)
-            cy.contains('.oxd-topbar-body-nav-tab-item', 'Purge Records').click();
+            // 2. Nhập tên mới
+            // Thay selector '#input-name' bằng selector của trường Họ và Tên
+            cy.get('#input-name').clear().type(NEW_NAME); 
             
-            // 3. Bỏ trống các trường bắt buộc (Employee Name) và click Search/Purge
-            cy.get('button[type="submit"]').contains('Search').click(); // Click Search hoặc Purge
+            // 3. Lưu thay đổi
+            cy.contains('button', 'Lưu thay đổi').click({ force: true }); 
+
+            // 4. Xác minh
+            cy.get('.message-success').should('contain', 'Cập nhật thành công'); // Selector thông báo
+            cy.get('#input-name').should('have.value', NEW_NAME);
             
-            // 4. Verify lỗi (Giả định lỗi 'Required' xuất hiện)
-            cy.contains('.oxd-input-field-error-message', 'Required').should('be.visible');
-            cy.log('✅ TC-MAINT-PURGE-002 PASS: Báo lỗi thiếu trường bắt buộc thành công.');
+            cy.log('✅ TC_PM_02 PASS: Cập nhật tên thành công.');
+        });
+
+        it('TC_PM_03: Add a new Shipping Address successfully.', () => {
+            cy.log('📍 TC_PM_03: Thêm địa chỉ giao hàng mới.');
+            
+            // 1. Điều hướng đến trang Sổ Địa Chỉ
+            cy.get('.user-info-area a[href*="customer/address/"]').click({ force: true }); // Selector ví dụ
+            cy.contains('Quản lý địa chỉ').click({ force: true }); // Selector ví dụ
+            
+            // 2. Click Thêm địa chỉ mới
+            cy.contains('button', 'Thêm địa chỉ mới').click({ force: true }); 
+            
+            // 3. Nhập dữ liệu mới (Cần tìm selector chi tiết cho form địa chỉ)
+            const randomPhone = '09' + Math.floor(Math.random() * 90000000 + 10000000);
+            
+            cy.get('#ten_nguoi_nhan').type('Người Nhận Test');
+            cy.get('#sdt_nguoi_nhan').type(randomPhone);
+            cy.get('#tinh_thanh').select('Hồ Chí Minh'); // Ví dụ: Chọn tỉnh/thành
+            cy.get('#quan_huyen').select('Quận 1');     // Ví dụ: Chọn quận
+            cy.get('#dia_chi_chi_tiet').type('Tầng 1, 123 Đường Test'); 
+
+            // 4. Lưu
+            cy.contains('button', 'Lưu địa chỉ').click({ force: true });
+
+            // 5. Xác minh
+            cy.get('.message-success').should('contain', 'Thêm địa chỉ thành công');
+            // Xác minh địa chỉ mới xuất hiện trong danh sách
+            cy.get('.address-list').should('contain', 'Người Nhận Test'); 
+
+            cy.log('✅ TC_PM_03 PASS: Thêm địa chỉ mới thành công.');
         });
     });
+    
+    // ... (Các describe khác như Filtering & Sorting Tests)
 });
