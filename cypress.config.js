@@ -1,10 +1,15 @@
-const { defineConfig } = require("cypress");
+const { defineConfig } = require('cypress')
 
 module.exports = defineConfig({
-  projectId: 'k8xfqa',
   e2e: {
+    baseUrl: 'https://cellphones.com.vn',
+    viewportWidth: 1280,
+    viewportHeight: 720,
+    pageLoadTimeout: 90000,
+    defaultCommandTimeout: 15000,
+    video: true,
+    screenshotOnRunFailure: true,
     setupNodeEvents(on, config) {
-      // implement node event listeners here
     },
   },
-});
+})
