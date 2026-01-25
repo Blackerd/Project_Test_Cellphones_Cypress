@@ -1,4 +1,4 @@
-describe('Suite: CPS_Store_Interaction - Buzz Comments Module', () => {
+describe('Suite: CPS_Store_Interaction', () => {
 
   // --- 1. IGNORE APP ERRORS ---
   // Vẫn giữ đoạn này để TC 01, 02 chạy mượt mà không bị web làm crash
@@ -46,7 +46,7 @@ describe('Suite: CPS_Store_Interaction - Buzz Comments Module', () => {
 
   });
   // --- TC 02: BUG DEMO - Blocked Location Permission ---
- it('TC_02: [BUG DEMO] Should detect invalid "Store-to-Store" routing when Location BLOCKED', () => {
+ it('CPS_Store_Interaction_02: BUG DEMO - Blocked Location Permission', () => {
     
     cy.visit('https://cellphones.com.vn/dia-chi-cua-hang', {
       onBeforeLoad(win) {
@@ -73,7 +73,7 @@ describe('Suite: CPS_Store_Interaction - Buzz Comments Module', () => {
   });
 
   // --- TC 03: Happy Path - Run Normally ---
-  it('CPS_Store_Interaction_02: Verify phone number link (Click-to-call)', () => {
+  it('CPS_Store_Interaction_03: Verify phone number link (Click-to-call)', () => {
     cy.get('.boxMap-stores .boxMap-store').first().within(() => {
       // Verify link số điện thoại (tel:)
       cy.get('a[href^="tel:"]')
@@ -90,7 +90,7 @@ describe('Suite: CPS_Store_Interaction - Buzz Comments Module', () => {
   // --- TC 04: BLOCKED (Sử dụng it.skip) ---
   // Note: Automation cannot verify Map synchronization due to Google Maps Shadow DOM/Canvas latency.
   // Manual Test Result: PASS
-  it.skip('CPS_Store_Interaction_03: [BLOCKED] Verify Map synchronization when clicking on a store card', () => {
+  it.skip('CPS_Store_Interaction_04: [BLOCKED] Verify Map synchronization when clicking on a store card', () => {
     // Code logic vẫn giữ lại để tham khảo (nhưng sẽ không chạy)
     cy.get('.boxMap-stores .boxMap-store').first().as('firstStore');
     cy.get('@firstStore').scrollIntoView().click();
@@ -103,7 +103,7 @@ describe('Suite: CPS_Store_Interaction - Buzz Comments Module', () => {
   // --- TC 05: BLOCKED (Sử dụng it.skip) ---
   // Note: Automation cannot interact reliably with Google Maps Markers (Canvas elements).
   // Manual Test Result: PASS
-  it.skip('CPS_Store_Interaction_04: [BLOCKED] Verify interaction with Map Pins (Markers)', () => {
+  it.skip('CPS_Store_Interaction_05: [BLOCKED] Verify interaction with Map Pins (Markers)', () => {
     // Code logic vẫn giữ lại
     cy.get('.mf-iconview-marker-container', { timeout: 10000 }).should('exist');
     cy.wait(2000);
@@ -115,6 +115,21 @@ describe('Suite: CPS_Store_Interaction - Buzz Comments Module', () => {
       .should('be.visible')
       .invoke('text')
       .should('have.length.greaterThan', 5);
+  });
+
+  it('CPS_Store_Interaction_06: Verify "Direct Icon" is clickable and has valid link', () => {
+    
+    // 1. Truy cập trang
+    cy.visit('https://cellphones.com.vn/dia-chi-cua-hang');
+
+    // 2. Tìm icon chỉ đường
+    // KỲ VỌNG: Icon phải hiển thị và có link
+    cy.get('.mf-direct-icon')
+      .should('exist')           // 1. Phải tồn tại trong DOM
+      .and('be.visible')         // 2. Phải nhìn thấy được (không được 0x0 px)
+      .and('have.attr', 'href')  // 3. Bắt buộc phải có thuộc tính href
+      .and('not.be.empty');      // 4. href không được rỗng
+      
   });
 
 });
